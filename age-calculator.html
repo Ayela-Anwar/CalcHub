@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Age Calculator - Find Your Exact Age in Years, Months and Days</title>
+<meta name="description" content="Free age calculator. Enter your date of birth to see your exact age in years, months and days, plus days until your next birthday.">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef4f3;--card:#fff;--ink:#12302e;--muted:#5d7674;--line:#d5e3e1;--accent:#0f8b7d;--accent-ink:#fff;--field:#f5faf9}
+:root[data-theme="dark"]{--bg:#0d1b1a;--card:#152827;--ink:#e6f2f0;--muted:#8fb0ac;--line:#254341;--accent:#3fc9b7;--accent-ink:#06211e;--field:#0f2120}
+*{box-sizing:border-box}
+body{margin:0;font-family:Manrope,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+header{display:flex;justify-content:space-between;align-items:center;max-width:960px;margin:0 auto;padding:20px}
+.logo{font-weight:800;font-size:1.15rem;color:inherit;text-decoration:none}
+#theme{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font:inherit;cursor:pointer}
+main{max-width:960px;margin:0 auto;padding:0 20px 48px}
+h1{font-size:clamp(1.8rem,5vw,2.8rem);line-height:1.15;margin:16px 0 8px;font-weight:800}
+.sub{color:var(--muted);margin:0 0 28px;max-width:52ch}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:20px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px}
+label{display:block;font-weight:600;font-size:.9rem;margin:14px 0 6px}
+label:first-of-type{margin-top:0}
+input{width:100%;padding:12px 14px;font:inherit;font-size:1.05rem;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:12px}
+input:focus,button:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.go{width:100%;margin-top:22px;padding:14px;border:0;border-radius:12px;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:800;font-size:1rem;cursor:pointer}
+.err{color:#c0392b;font-size:.9rem;min-height:1.4em;margin:10px 0 0}
+#result{text-align:center}
+.units{display:flex;gap:10px;justify-content:center;margin:12px 0}
+.unit{flex:1;background:var(--field);border:1px solid var(--line);border-radius:14px;padding:12px 6px}
+.unit b{display:block;font-size:2.2rem;line-height:1.1;font-weight:800}
+.unit span{color:var(--muted);font-size:.85rem}
+.facts{color:var(--muted);font-size:.95rem;margin:8px 0 0}
+.facts strong{color:var(--ink)}
+.hint{color:var(--muted);font-size:.9rem}
+.hhead{display:flex;justify-content:space-between;align-items:center;margin-top:20px}
+.hhead h2{font-size:1.1rem;margin:0}
+#clear{background:none;border:0;color:var(--muted);text-decoration:underline;font:inherit;cursor:pointer}
+ul{list-style:none;margin:10px 0 0;padding:0}
+li button{width:100%;text-align:left;display:flex;justify-content:space-between;gap:10px;background:var(--field);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:8px;font:inherit;cursor:pointer}
+li small{color:var(--muted);display:block}
+.empty{color:var(--muted);font-size:.9rem}
+article{margin-top:32px}article h2{font-size:1.2rem}article p{color:var(--muted);max-width:70ch}
+footer{text-align:center;color:var(--muted);font-size:.85rem;padding:24px}
+</style>
+</head>
+<body>
+<header><a class="logo" href="index.html">CalcHub</a><button id="theme" type="button">Dark mode</button></header>
+<main>
+<h1>Age Calculator</h1>
+<p class="sub">Enter a date of birth to see the exact age in years, months and days, and how long until the next birthday.</p>
+
+<div class="grid">
+  <section class="card" aria-label="Age form">
+    <label for="dob">Date of birth</label>
+    <input id="dob" type="date">
+    <label for="at">Age at date</label>
+    <input id="at" type="date">
+    <p class="err" id="err" role="alert"></p>
+    <button class="go" id="calc" type="button">Calculate age</button>
+  </section>
+
+  <section class="card" aria-live="polite">
+    <div id="result"><p class="hint">Your result will appear here.</p></div>
+    <div class="hhead"><h2>History</h2><button id="clear" type="button">Clear history</button></div>
+    <ul id="history"></ul>
+  </section>
+</div>
+
+<article>
+  <h2>How is age calculated?</h2>
+  <p>The calculator subtracts the date of birth from the chosen date, year by year, month by month, then day by day. If the day of the month is smaller than the birth day, it borrows the days of the previous month, the same way you would borrow in normal subtraction.</p>
+  <h2>Age on a past or future date</h2>
+  <p>Change "Age at date" to find how old someone was, or will be, on any day, for example on a job application deadline or an exam date.</p>
+</article>
+</main>
+<footer>CalcHub - free online calculators</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const KEY = "ageHistory";
+const DAY = 86400000;
+
+function loadHistory(){ try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch(e){ return []; } }
+function saveHistory(l){ try { localStorage.setItem(KEY, JSON.stringify(l)); } catch(e){} }
+
+// "YYYY-MM-DD" -> local Date at midnight
+function parseDate(s){ const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); }
+function toInput(d){ const p = n => String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
+const fmt = d => d.toLocaleDateString(undefined, {day:"numeric", month:"short", year:"numeric"});
+
+function compute(b, t){
+  let y = t.getFullYear() - b.getFullYear();
+  let m = t.getMonth() - b.getMonth();
+  let d = t.getDate() - b.getDate();
+  if (d < 0){ m--; d += new Date(t.getFullYear(), t.getMonth(), 0).getDate(); } // days in previous month
+  if (m < 0){ y--; m += 12; }
+  const totalDays = Math.round((t - b) / DAY);
+  let next = new Date(t.getFullYear(), b.getMonth(), b.getDate());
+  if (next < t) next = new Date(t.getFullYear() + 1, b.getMonth(), b.getDate());
+  const toNext = Math.round((next - t) / DAY);
+  return { y, m, d, totalDays, weeks: Math.floor(totalDays / 7), toNext,
+           nextDay: next.toLocaleDateString(undefined, {weekday:"long"}) };
+}
+
+function show(r){
+  $("result").innerHTML =
+    `<div class="hint">Your age</div>
+     <div class="units">
+       <div class="unit"><b>${r.y}</b><span>years</span></div>
+       <div class="unit"><b>${r.m}</b><span>months</span></div>
+       <div class="unit"><b>${r.d}</b><span>days</span></div>
+     </div>
+     <p class="facts"><strong>${r.totalDays.toLocaleString()}</strong> days (${r.weeks.toLocaleString()} weeks) lived</p>
+     <p class="facts">${r.toNext === 0 ? "<strong>Happy birthday!</strong>" : `Next birthday in <strong>${r.toNext}</strong> days, on a ${r.nextDay}`}</p>`;
+}
+
+function calculate(){
+  if (!$("dob").value || !$("at").value){ $("err").textContent = "Choose both dates."; return; }
+  const b = parseDate($("dob").value), t = parseDate($("at").value);
+  if (b > t){ $("err").textContent = "The date of birth must be before the age-at date."; return; }
+  $("err").textContent = "";
+  const r = compute(b, t);
+  show(r);
+  const list = loadHistory();
+  list.unshift({ label: "Born " + fmt(b), sub: "On " + fmt(t), r });
+  saveHistory(list.slice(0, 20));
+  renderHistory();
+}
+
+function renderHistory(){
+  const list = loadHistory(), ul = $("history");
+  ul.innerHTML = "";
+  if (!list.length){ ul.innerHTML = '<li class="empty">No calculations yet. Your last 20 results are saved here.</li>'; return; }
+  list.forEach(h => {
+    const li = document.createElement("li"), b = document.createElement("button");
+    b.type = "button";
+    b.innerHTML = `<span>${h.label}<small>${h.sub}</small></span><strong>${h.r.y}y ${h.r.m}m ${h.r.d}d</strong>`;
+    b.onclick = () => show(h.r);
+    li.appendChild(b); ul.appendChild(li);
+  });
+}
+
+$("clear").onclick = () => { saveHistory([]); renderHistory(); };
+$("calc").onclick = calculate;
+document.addEventListener("keydown", e => { if (e.key === "Enter") calculate(); });
+$("at").value = toInput(new Date());
+$("dob").max = $("at").value;
+
+function applyTheme(t){
+  document.documentElement.dataset.theme = t;
+  $("theme").textContent = t === "dark" ? "Light mode" : "Dark mode";
+}
+let theme = "light";
+try { theme = localStorage.getItem("theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); } catch(e){}
+applyTheme(theme);
+$("theme").onclick = () => {
+  theme = theme === "dark" ? "light" : "dark";
+  applyTheme(theme);
+  try { localStorage.setItem("theme", theme); } catch(e){}
+};
+
+renderHistory();
+</script>
+</body>
+</html>

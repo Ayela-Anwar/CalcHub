@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BMI Calculator - Check Your Body Mass Index Free</title>
+<meta name="description" content="Free BMI calculator. Enter your height and weight in metric or imperial units to see your BMI and category instantly.">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef4f3;--card:#fff;--ink:#12302e;--muted:#5d7674;--line:#d5e3e1;--accent:#0f8b7d;--accent-ink:#fff;--field:#f5faf9}
+:root[data-theme="dark"]{--bg:#0d1b1a;--card:#152827;--ink:#e6f2f0;--muted:#8fb0ac;--line:#254341;--accent:#3fc9b7;--accent-ink:#06211e;--field:#0f2120}
+*{box-sizing:border-box}
+body{margin:0;font-family:Manrope,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+header{display:flex;justify-content:space-between;align-items:center;max-width:960px;margin:0 auto;padding:20px}
+.logo{font-weight:800;font-size:1.15rem;color:inherit;text-decoration:none}
+#theme{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font:inherit;cursor:pointer}
+main{max-width:960px;margin:0 auto;padding:0 20px 48px}
+h1{font-size:clamp(1.8rem,5vw,2.8rem);line-height:1.15;margin:16px 0 8px;font-weight:800}
+.sub{color:var(--muted);margin:0 0 28px;max-width:52ch}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:20px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px}
+.tabs{display:inline-flex;background:var(--field);border:1px solid var(--line);border-radius:999px;padding:4px;margin-bottom:20px}
+.tabs button{border:0;background:none;color:var(--muted);font:inherit;font-weight:600;padding:8px 18px;border-radius:999px;cursor:pointer}
+.tabs button.on{background:var(--accent);color:var(--accent-ink)}
+label{display:block;font-weight:600;font-size:.9rem;margin:14px 0 6px}
+.row{display:flex;gap:12px}.row>div{flex:1}
+input{width:100%;padding:12px 14px;font:inherit;font-size:1.05rem;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:12px}
+input:focus,button:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.go{width:100%;margin-top:22px;padding:14px;border:0;border-radius:12px;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:800;font-size:1rem;cursor:pointer}
+.err{color:#c0392b;font-size:.9rem;min-height:1.4em;margin:10px 0 0}
+#result{text-align:center}
+.num{font-size:3.6rem;font-weight:800;line-height:1;margin:8px 0}
+.cat{font-weight:800;font-size:1.15rem}
+.bar{position:relative;height:12px;border-radius:99px;margin:26px 0 8px;background:linear-gradient(90deg,#4aa3df 0 18.5%,#37b36b 18.5% 45%,#f2b134 45% 62%,#e5533d 62%)}
+.pin{position:absolute;top:-5px;width:4px;height:22px;background:var(--ink);border-radius:2px;left:0;transition:left .5s}
+.scale{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted)}
+.hint{color:var(--muted);font-size:.9rem}
+.hhead{display:flex;justify-content:space-between;align-items:center;margin-top:20px}
+.hhead h2{font-size:1.1rem;margin:0}
+#clear{background:none;border:0;color:var(--muted);text-decoration:underline;font:inherit;cursor:pointer}
+ul{list-style:none;margin:10px 0 0;padding:0}
+li button{width:100%;text-align:left;display:flex;justify-content:space-between;gap:10px;background:var(--field);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:8px;font:inherit;cursor:pointer}
+li small{color:var(--muted);display:block}
+.empty{color:var(--muted);font-size:.9rem}
+article{margin-top:32px}article h2{font-size:1.2rem}article p{color:var(--muted);max-width:70ch}
+footer{text-align:center;color:var(--muted);font-size:.85rem;padding:24px}
+</style>
+</head>
+<body>
+<header><a class="logo" href="index.html">CalcHub</a><button id="theme" type="button">Dark mode</button></header>
+<main>
+<h1>BMI Calculator</h1>
+<p class="sub">Enter your height and weight to see your body mass index and where it falls on the scale.</p>
+
+<div class="grid">
+  <section class="card" aria-label="BMI form">
+    <div class="tabs" role="tablist">
+      <button type="button" id="tm" class="on">Metric (kg, cm)</button>
+      <button type="button" id="ti">Imperial (lb, ft/in)</button>
+    </div>
+    <div id="metric">
+      <div class="row">
+        <div><label for="kg">Weight (kg)</label><input id="kg" type="number" inputmode="decimal" placeholder="65"></div>
+        <div><label for="cm">Height (cm)</label><input id="cm" type="number" inputmode="decimal" placeholder="165"></div>
+      </div>
+    </div>
+    <div id="imperial" hidden>
+      <div class="row">
+        <div><label for="lb">Weight (lb)</label><input id="lb" type="number" inputmode="decimal" placeholder="145"></div>
+        <div><label for="ft">Height (ft)</label><input id="ft" type="number" inputmode="decimal" placeholder="5"></div>
+        <div><label for="in">Height (in)</label><input id="in" type="number" inputmode="decimal" placeholder="6"></div>
+      </div>
+    </div>
+    <p class="err" id="err" role="alert"></p>
+    <button class="go" id="calc" type="button">Calculate BMI</button>
+  </section>
+
+  <section class="card" aria-live="polite">
+    <div id="result">
+      <p class="hint">Your result will appear here.</p>
+    </div>
+    <div class="hhead"><h2>History</h2><button id="clear" type="button">Clear history</button></div>
+    <ul id="history"></ul>
+  </section>
+</div>
+
+<article>
+  <h2>How is BMI calculated?</h2>
+  <p>BMI = weight (kg) / height (m)². For example, 65 kg at 1.65 m gives 65 / 2.72 = 23.9, which is in the normal range.</p>
+  <h2>BMI categories</h2>
+  <p>Under 18.5 is underweight, 18.5 to 24.9 is normal, 25 to 29.9 is overweight, and 30 or more is obese. BMI is a screening tool and does not measure body fat directly, so talk to a doctor for personal health advice.</p>
+</article>
+</main>
+<footer>CalcHub - free online calculators</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+let unit = "metric";
+const KEY = "bmiHistory";
+
+// ---- storage helpers (safe if storage is blocked) ----
+function loadHistory(){ try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch(e){ return []; } }
+function saveHistory(list){ try { localStorage.setItem(KEY, JSON.stringify(list)); } catch(e){} }
+
+// ---- unit toggle ----
+function setUnit(u){
+  unit = u;
+  $("metric").hidden = u !== "metric";
+  $("imperial").hidden = u !== "imperial";
+  $("tm").classList.toggle("on", u === "metric");
+  $("ti").classList.toggle("on", u === "imperial");
+  $("err").textContent = "";
+}
+$("tm").onclick = () => setUnit("metric");
+$("ti").onclick = () => setUnit("imperial");
+
+// ---- BMI logic ----
+function category(b){
+  if (b < 18.5) return "Underweight";
+  if (b < 25) return "Normal weight";
+  if (b < 30) return "Overweight";
+  return "Obese";
+}
+function calculate(){
+  let kg, m;
+  if (unit === "metric"){
+    kg = parseFloat($("kg").value);
+    m = parseFloat($("cm").value) / 100;
+  } else {
+    kg = parseFloat($("lb").value) * 0.45359237;
+    const inches = (parseFloat($("ft").value) || 0) * 12 + (parseFloat($("in").value) || 0);
+    m = inches * 0.0254;
+  }
+  if (!(kg > 0) || !(m > 0)){ $("err").textContent = "Enter a weight and height greater than zero."; return; }
+  if (m < 0.5 || m > 2.6 || kg > 500){ $("err").textContent = "Those values look out of range. Please check them."; return; }
+  $("err").textContent = "";
+  const bmi = kg / (m * m);
+  show(bmi);
+  const list = loadHistory();
+  list.unshift({
+    unit, bmi: +bmi.toFixed(1), cat: category(bmi),
+    label: unit === "metric" ? `${kg.toFixed(1)} kg, ${(m*100).toFixed(0)} cm` : `${$("lb").value} lb, ${$("ft").value || 0} ft ${$("in").value || 0} in`,
+    time: new Date().toLocaleString()
+  });
+  saveHistory(list.slice(0, 20));
+  renderHistory();
+}
+function show(bmi){
+  const pos = Math.min(Math.max((bmi - 10) / 30, 0), 1) * 100; // scale 10..40
+  $("result").innerHTML =
+    `<div class="hint">Your BMI</div><div class="num">${bmi.toFixed(1)}</div><div class="cat">${category(bmi)}</div>
+     <div class="bar"><div class="pin" style="left:${pos}%"></div></div>
+     <div class="scale"><span>10</span><span>18.5</span><span>25</span><span>30</span><span>40</span></div>`;
+}
+
+// ---- history ----
+function renderHistory(){
+  const list = loadHistory(), ul = $("history");
+  ul.innerHTML = "";
+  if (!list.length){ ul.innerHTML = '<li class="empty">No calculations yet. Your last 20 results are saved here.</li>'; return; }
+  list.forEach(h => {
+    const li = document.createElement("li");
+    const b = document.createElement("button");
+    b.type = "button";
+    b.innerHTML = `<span>${h.label}<small>${h.time}</small></span><strong>${h.bmi.toFixed(1)}<small>${h.cat}</small></strong>`;
+    b.onclick = () => show(h.bmi);
+    li.appendChild(b); ul.appendChild(li);
+  });
+}
+$("clear").onclick = () => { saveHistory([]); renderHistory(); };
+$("calc").onclick = calculate;
+document.addEventListener("keydown", e => { if (e.key === "Enter") calculate(); });
+
+// ---- dark mode ----
+function applyTheme(t){
+  document.documentElement.dataset.theme = t;
+  $("theme").textContent = t === "dark" ? "Light mode" : "Dark mode";
+}
+let theme = "light";
+try { theme = localStorage.getItem("theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); } catch(e){}
+applyTheme(theme);
+$("theme").onclick = () => {
+  theme = theme === "dark" ? "light" : "dark";
+  applyTheme(theme);
+  try { localStorage.setItem("theme", theme); } catch(e){}
+};
+
+renderHistory();
+</script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Percentage Calculator - Percent of a Number, Percent Change and More</title>
+<meta name="description" content="Free percentage calculator. Find X% of a number, what percent one number is of another, and percentage increase or decrease.">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef4f3;--card:#fff;--ink:#12302e;--muted:#5d7674;--line:#d5e3e1;--accent:#0f8b7d;--accent-ink:#fff;--field:#f5faf9}
+:root[data-theme="dark"]{--bg:#0d1b1a;--card:#152827;--ink:#e6f2f0;--muted:#8fb0ac;--line:#254341;--accent:#3fc9b7;--accent-ink:#06211e;--field:#0f2120}
+*{box-sizing:border-box}
+body{margin:0;font-family:Manrope,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+header{display:flex;justify-content:space-between;align-items:center;max-width:960px;margin:0 auto;padding:20px}
+.logo{font-weight:800;font-size:1.15rem;color:inherit;text-decoration:none}
+#theme{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font:inherit;cursor:pointer}
+main{max-width:960px;margin:0 auto;padding:0 20px 48px}
+h1{font-size:clamp(1.8rem,5vw,2.8rem);line-height:1.15;margin:16px 0 8px;font-weight:800}
+.sub{color:var(--muted);margin:0 0 28px;max-width:52ch}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:20px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;background:var(--field);border:1px solid var(--line);border-radius:22px;padding:4px;margin-bottom:20px}
+.tabs button{flex:1;border:0;background:none;color:var(--muted);font:inherit;font-weight:600;font-size:.9rem;padding:8px 12px;border-radius:999px;cursor:pointer}
+.tabs button.on{background:var(--accent);color:var(--accent-ink)}
+label{display:block;font-weight:600;font-size:.9rem;margin:14px 0 6px}
+label:first-child{margin-top:0}
+input{width:100%;padding:12px 14px;font:inherit;font-size:1.05rem;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:12px}
+input:focus,button:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.go{width:100%;margin-top:22px;padding:14px;border:0;border-radius:12px;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:800;font-size:1rem;cursor:pointer}
+.err{color:#c0392b;font-size:.9rem;min-height:1.4em;margin:10px 0 0}
+#result{text-align:center}
+.num{font-size:3.4rem;font-weight:800;line-height:1.1;margin:8px 0;word-break:break-word}
+.line{color:var(--muted)}
+.hint{color:var(--muted);font-size:.9rem}
+.hhead{display:flex;justify-content:space-between;align-items:center;margin-top:20px}
+.hhead h2{font-size:1.1rem;margin:0}
+#clear{background:none;border:0;color:var(--muted);text-decoration:underline;font:inherit;cursor:pointer}
+ul{list-style:none;margin:10px 0 0;padding:0}
+li button{width:100%;text-align:left;display:flex;justify-content:space-between;gap:10px;background:var(--field);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:8px;font:inherit;cursor:pointer}
+li small{color:var(--muted);display:block}
+.empty{color:var(--muted);font-size:.9rem}
+article{margin-top:32px}article h2{font-size:1.2rem}article p{color:var(--muted);max-width:70ch}
+footer{text-align:center;color:var(--muted);font-size:.85rem;padding:24px}
+</style>
+</head>
+<body>
+<header><a class="logo" href="index.html">CalcHub</a><button id="theme" type="button">Dark mode</button></header>
+<main>
+<h1>Percentage Calculator</h1>
+<p class="sub">Pick what you want to find, enter two numbers, and get the answer with the working shown.</p>
+
+<div class="grid">
+  <section class="card" aria-label="Percentage form">
+    <div class="tabs" id="tabs"></div>
+    <div id="fields"></div>
+    <p class="err" id="err" role="alert"></p>
+    <button class="go" id="calc" type="button">Calculate</button>
+  </section>
+
+  <section class="card" aria-live="polite">
+    <div id="result"><p class="hint">Your result will appear here.</p></div>
+    <div class="hhead"><h2>History</h2><button id="clear" type="button">Clear history</button></div>
+    <ul id="history"></ul>
+  </section>
+</div>
+
+<article>
+  <h2>Percentage formulas</h2>
+  <p>X% of Y = X / 100 x Y. X is what percent of Y = X / Y x 100. Percentage change = (new - old) / old x 100. A positive change is an increase, a negative one is a decrease.</p>
+  <h2>Examples</h2>
+  <p>20% of 150 is 30. 30 is 20% of 150. A price going from 80 to 100 is a 25% increase, and from 100 to 80 is a 20% decrease.</p>
+</article>
+</main>
+<footer>CalcHub - free online calculators</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const KEY = "percentHistory";
+const num = n => Number(n).toLocaleString(undefined, {maximumFractionDigits: 4});
+
+// Each mode: tab name, two fields, a function that returns {value, text} or an error string
+const MODES = {
+  of: { tab: "X% of Y", a: "Percentage (%)", b: "Number",
+    run: (a, b) => ({ value: num(a / 100 * b), text: `${num(a)}% of ${num(b)}` }) },
+  is: { tab: "X is what % of Y", a: "X", b: "Y",
+    run: (a, b) => b === 0 ? "Y cannot be zero." : ({ value: num(a / b * 100) + "%", text: `${num(a)} is what percent of ${num(b)}` }) },
+  change: { tab: "% change", a: "From (old value)", b: "To (new value)",
+    run: (a, b) => {
+      if (a === 0) return "The old value cannot be zero.";
+      const c = (b - a) / a * 100;
+      const kind = c > 0 ? "increase" : c < 0 ? "decrease" : "no change";
+      return { value: num(Math.abs(c)) + "%", text: `${num(a)} to ${num(b)}: ${kind}` };
+    } }
+};
+let mode = "of";
+
+function loadHistory(){ try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch(e){ return []; } }
+function saveHistory(l){ try { localStorage.setItem(KEY, JSON.stringify(l)); } catch(e){} }
+
+function renderMode(){
+  $("tabs").innerHTML = "";
+  Object.keys(MODES).forEach(k => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = MODES[k].tab;
+    b.className = k === mode ? "on" : "";
+    b.onclick = () => { mode = k; $("err").textContent = ""; renderMode(); };
+    $("tabs").appendChild(b);
+  });
+  $("fields").innerHTML =
+    `<label for="a">${MODES[mode].a}</label><input id="a" type="number" inputmode="decimal" step="any">
+     <label for="b">${MODES[mode].b}</label><input id="b" type="number" inputmode="decimal" step="any">`;
+}
+
+function show(r){
+  $("result").innerHTML = `<div class="hint">Result</div><div class="num">${r.value}</div><div class="line">${r.text}</div>`;
+}
+
+function calculate(){
+  const a = parseFloat($("a").value), b = parseFloat($("b").value);
+  if (isNaN(a) || isNaN(b)){ $("err").textContent = "Enter both numbers."; return; }
+  const r = MODES[mode].run(a, b);
+  if (typeof r === "string"){ $("err").textContent = r; return; }
+  $("err").textContent = "";
+  show(r);
+  const list = loadHistory();
+  list.unshift(r);
+  saveHistory(list.slice(0, 20));
+  renderHistory();
+}
+
+function renderHistory(){
+  const list = loadHistory(), ul = $("history");
+  ul.innerHTML = "";
+  if (!list.length){ ul.innerHTML = '<li class="empty">No calculations yet. Your last 20 results are saved here.</li>'; return; }
+  list.forEach(h => {
+    const li = document.createElement("li"), b = document.createElement("button");
+    b.type = "button";
+    b.innerHTML = `<span>${h.text}</span><strong>${h.value}</strong>`;
+    b.onclick = () => show(h);
+    li.appendChild(b); ul.appendChild(li);
+  });
+}
+
+$("clear").onclick = () => { saveHistory([]); renderHistory(); };
+$("calc").onclick = calculate;
+document.addEventListener("keydown", e => { if (e.key === "Enter") calculate(); });
+
+function applyTheme(t){
+  document.documentElement.dataset.theme = t;
+  $("theme").textContent = t === "dark" ? "Light mode" : "Dark mode";
+}
+let theme = "light";
+try { theme = localStorage.getItem("theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); } catch(e){}
+applyTheme(theme);
+$("theme").onclick = () => {
+  theme = theme === "dark" ? "light" : "dark";
+  applyTheme(theme);
+  try { localStorage.setItem("theme", theme); } catch(e){}
+};
+
+renderMode();
+renderHistory();
+</script>
+</body>
+</html>

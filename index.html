@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CalcHub - Free Online Calculators (BMI, Age, Percentage)</title>
+<meta name="description" content="Free online calculators with saved history: BMI calculator, age calculator and percentage calculator.">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef4f3;--card:#fff;--ink:#12302e;--muted:#5d7674;--line:#d5e3e1;--accent:#0f8b7d;--accent-ink:#fff;--field:#f5faf9}
+:root[data-theme="dark"]{--bg:#0d1b1a;--card:#152827;--ink:#e6f2f0;--muted:#8fb0ac;--line:#254341;--accent:#3fc9b7;--accent-ink:#06211e;--field:#0f2120}
+*{box-sizing:border-box}
+body{margin:0;font-family:Manrope,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+header{display:flex;justify-content:space-between;align-items:center;max-width:960px;margin:0 auto;padding:20px}
+.logo{font-weight:800;font-size:1.15rem;color:inherit;text-decoration:none}
+nav{display:flex;gap:18px;align-items:center}
+nav a{color:var(--muted);text-decoration:none;font-weight:600}
+nav a:hover{color:var(--ink)}
+@media(max-width:640px){nav a{display:none}}
+#theme{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font:inherit;cursor:pointer}
+main{max-width:960px;margin:0 auto;padding:0 20px 48px}
+.hero{padding:40px 0 28px}
+h1{font-size:clamp(2rem,6vw,3.4rem);line-height:1.1;margin:0 0 12px;font-weight:800;max-width:16ch}
+.sub{color:var(--muted);margin:0 0 24px;max-width:50ch;font-size:1.05rem}
+#q{width:100%;max-width:440px;padding:14px 18px;font:inherit;font-size:1rem;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:999px}
+#q:focus,a:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-top:8px}
+.tile{display:block;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;color:inherit;text-decoration:none;transition:border-color .15s,transform .15s}
+.tile:hover{border-color:var(--accent);transform:translateY(-2px)}
+.badge{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-weight:800;margin-bottom:14px}
+.tile h2{margin:0 0 4px;font-size:1.15rem}
+.tile p{margin:0;color:var(--muted);font-size:.95rem}
+#none{color:var(--muted);display:none;margin-top:16px}
+.about{margin-top:44px}.about h2{font-size:1.2rem}.about p{color:var(--muted);max-width:70ch}
+footer{text-align:center;color:var(--muted);font-size:.85rem;padding:24px}
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="index.html">CalcHub</a>
+  <nav>
+    <a href="bmi-calculator.html">BMI</a>
+    <a href="age-calculator.html">Age</a>
+    <a href="percentage-calculator.html">Percentage</a>
+    <button id="theme" type="button">Dark mode</button>
+  </nav>
+</header>
+<main>
+  <section class="hero">
+    <h1>Free calculators that remember your results</h1>
+    <p class="sub">Quick, clean and private. Every calculation is saved on your own device, so you can look back at it any time.</p>
+    <input id="q" type="search" placeholder="Search calculators, e.g. age" aria-label="Search calculators">
+  </section>
+
+  <div class="cards" id="cards">
+    <a class="tile" href="bmi-calculator.html" data-k="bmi body mass index weight height health">
+      <span class="badge">BMI</span><h2>BMI Calculator</h2><p>Check your body mass index in metric or imperial units.</p>
+    </a>
+    <a class="tile" href="age-calculator.html" data-k="age birthday date of birth years months days">
+      <span class="badge">Age</span><h2>Age Calculator</h2><p>Exact age in years, months and days, plus days to your next birthday.</p>
+    </a>
+    <a class="tile" href="percentage-calculator.html" data-k="percentage percent increase decrease change discount">
+      <span class="badge">%</span><h2>Percentage Calculator</h2><p>Percent of a number, what percent one number is of another, and percent change.</p>
+    </a>
+  </div>
+  <p id="none">No calculator matches that search yet.</p>
+
+  <section class="about">
+    <h2>About CalcHub</h2>
+    <p>CalcHub is a small collection of everyday calculators. Nothing you enter is sent to a server: results and history stay in your browser.</p>
+  </section>
+</main>
+<footer>CalcHub - free online calculators</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+
+// search filter
+$("q").addEventListener("input", () => {
+  const q = $("q").value.trim().toLowerCase();
+  let shown = 0;
+  document.querySelectorAll(".tile").forEach(t => {
+    const hit = !q || (t.textContent + " " + t.dataset.k).toLowerCase().includes(q);
+    t.style.display = hit ? "" : "none";
+    if (hit) shown++;
+  });
+  $("none").style.display = shown ? "none" : "block";
+});
+
+// dark mode (shared with the calculator pages)
+function applyTheme(t){
+  document.documentElement.dataset.theme = t;
+  $("theme").textContent = t === "dark" ? "Light mode" : "Dark mode";
+}
+let theme = "light";
+try { theme = localStorage.getItem("theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); } catch(e){}
+applyTheme(theme);
+$("theme").onclick = () => {
+  theme = theme === "dark" ? "light" : "dark";
+  applyTheme(theme);
+  try { localStorage.setItem("theme", theme); } catch(e){}
+};
+</script>
+</body>
+</html>
